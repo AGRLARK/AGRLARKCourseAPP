@@ -1,0 +1,6 @@
+.ColorModeSwitcher {
+  display: flex;
+  justify-content: end;
+  align-items: end;
+  left: 95vw;
+}
