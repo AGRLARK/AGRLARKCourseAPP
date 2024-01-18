@@ -28,9 +28,9 @@ const Home = () => {
           alignItems={'center'}
           spacing={['16', '56']}
         >
-          <VStack width={'full'} alignItems={['center', 'flex-end']}>
-            <Heading children="LEARN FROM THE EXPERTS" size={'2xl'} />
-            <Text children="Find Valuable Content At Reasonable Price" />
+          <VStack width={'full'} alignItems={['center', 'flex-end']} spacing='8'>
+            <Heading children="LEARN FROM THE EXPERTS" fontSize={'3xl '} />
+            <Text textAlign={["center","left"]} fontSize={'2xl'} fontFamily="cursive" children="Find Valuable Content At Reasonable Price" />
             <Link to="/courses">
               <Button size={'lg'} colorScheme="yellow">
                 Explore Now
@@ -56,9 +56,8 @@ const Home = () => {
           className="brandsBanner"
           justifyContent={'space-evenly'}
           margin={'4'}
-          bg="black.400"
         >
-          <CgGoogle />
+          <CgGoogle  />
           <CgYoutube />
           <DiAws />
           <SiUdemy />
