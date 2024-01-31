@@ -18,7 +18,7 @@ import {
 import { useDisclosure } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
 
-const LinkButton = ({ url = '/', title = 'Home' ,onClose}) => (
+const LinkButton = ({ url = '/', title = 'Home', onClose }) => (
   <Link onClick={onClose} to={url}>
     <Button variant={'ghost'}>{title}</Button>
   </Link>
@@ -26,8 +26,8 @@ const LinkButton = ({ url = '/', title = 'Home' ,onClose}) => (
 
 const Header = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const isAuthenticated = false;
-  const logOutHandler=()=>{
+  const isAuthenticated = true;
+  const logOutHandler = () => {
     console.log("Logout..");
     onClose();
   }
@@ -39,6 +39,7 @@ const Header = () => {
       <ColorModeSwitcher />
       <Button
         onClick={onOpen}
+        zIndex={"overlay"}
         colorScheme="yellow"
         height={'12'}
         width={'12'}
@@ -84,7 +85,7 @@ const Header = () => {
                     {user && user.role === 'admin' && (
                       <Link to="/admin/dashboard">
                         <Button colorScheme={"purple"} variant={'ghost'}>
-                          <RiDashboardFill width={{margin:"4px"}}/>
+                          <RiDashboardFill width={{ margin: "4px" }} />
                           DASHBOARD
                         </Button>
                       </Link>
