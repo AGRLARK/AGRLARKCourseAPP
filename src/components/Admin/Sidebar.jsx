@@ -11,7 +11,7 @@ const Sidebar = () => {
 
             <LinkButton Icon={RiDashboardFill} text='DashBoard' url={'dashboard'} active={location.pathname === '/admin/dashboard'} />
             <LinkButton Icon={RiAddCircleFill} text='Create Course' url={'createcourse'} active={location.pathname === '/admin/createcourse'} />
-            <LinkButton Icon={RiEyeFill} text='Courses' url={'courses'} active={location.pathname === '/admin/createcourse'} />
+            <LinkButton Icon={RiEyeFill} text='Courses' url={'courses'} active={location.pathname === '/admin/courses'} />
             <LinkButton Icon={RiUser3Fill} text='Users' url={'users'} active={location.pathname === '/admin/users'} />
         </VStack>
     )
