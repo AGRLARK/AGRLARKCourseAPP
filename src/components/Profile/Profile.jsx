@@ -120,8 +120,6 @@ const Profile = () => {
                                 </VStack>
                             ))
                         }
-
-
                     </Stack>
                 )
             }
