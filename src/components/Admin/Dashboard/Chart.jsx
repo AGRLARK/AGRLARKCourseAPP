@@ -71,7 +71,7 @@ function getLastYearMonths() {
     ];
 
     const currentMonth = new Date().getMonth();
-    const remain = 11 - currentMonth;
+    const remain = 1 - currentMonth;
 
     for (let i = currentMonth; i <= months.length; i--) {
         const element = months[i];
