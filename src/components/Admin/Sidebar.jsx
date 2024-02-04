@@ -7,7 +7,7 @@ const Sidebar = () => {
     const location = useLocation();
 
     return (
-        <VStack spacing={8} p={16} boxShadow={'-2px 0 10px rgba(107,70,193,0.5)'}>
+        <VStack spacing={8} p={16} alignItems={'flex-start'} boxShadow={'-2px 0 10px rgba(107,70,193,0.5)'}>
 
             <LinkButton Icon={RiDashboardFill} text='DashBoard' url={'dashboard'} active={location.pathname === '/admin/dashboard'} />
             <LinkButton Icon={RiAddCircleFill} text='Create Course' url={'createcourse'} active={location.pathname === '/admin/createcourse'} />
