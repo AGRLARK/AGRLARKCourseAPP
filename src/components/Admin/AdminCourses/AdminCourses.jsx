@@ -1,42 +1,136 @@
-import React from 'react'
-import { Grid, Box, Heading, Table, TableContainer, TableCaption, Thead, Th, Tbody, Tr, Td, HStack, Button, Image, useDisclosure } from '@chakra-ui/react';
+import React, { useState, useEffect } from 'react'
+import { Grid, Box, Heading, Table, TableContainer, TableCaption, Thead, Th, Tbody, Tr, Td, HStack, Button, Image, useDisclosure, useToast } from '@chakra-ui/react';
 import cursor from '../../../assets/Images/cursor.png'
 import Sidebar from '../Sidebar';
 import { RiDeleteBin7Fill } from 'react-icons/ri';
 import CourseModal from './CourseModal';
+import { courseService } from '../../../services/courseService';
 
 const AdminCourses = () => {
-    const courses = [
-        {
-            _id: "d32sdsesafg2q",
-            poster: {
-                url: "https://images.unsplash.com/photo-1682686580036-b5e25932ce9a?q=80&w=1975&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            },
-            title: "React Js Course",
-            category: " Web Development",
-            createdBy: "AGRLARK",
-            views: 123,
-            numOfVideos: 213
-        }
-    ]
+    const [courses, setCourses] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedCourse, setSelectedCourse] = useState(null);
+    const toast = useToast();
     const { isOpen, onClose, onOpen } = useDisclosure();
 
-    const courseDetailHandler = userId => {
+    useEffect(() => {
+        const fetchCourses = async () => {
+            try {
+                const response = await courseService.getAllCourses();
+                if (response.success) {
+                    setCourses(response.courses);
+                }
+            } catch (error) {
+                toast({
+                    title: 'Error',
+                    description: 'Failed to fetch courses',
+                    status: 'error',
+                    duration: 3000,
+                    isClosable: true,
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchCourses();
+    }, [toast]);
+
+    const courseDetailHandler = (course) => {
+        setSelectedCourse(course);
         onOpen();
-    }
+    };
 
-    const deleteHandler = userId => {
-        console.log(userId);
-    }
+    const deleteHandler = async (courseId) => {
+        try {
+            const response = await courseService.deleteCourse(courseId);
+            if (response.success) {
+                toast({
+                    title: 'Success',
+                    description: 'Course deleted successfully',
+                    status: 'success',
+                    duration: 3000,
+                    isClosable: true,
+                });
+                // Refresh courses list
+                const coursesResponse = await courseService.getAllCourses();
+                if (coursesResponse.success) {
+                    setCourses(coursesResponse.courses);
+                }
+            }
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: error.response?.data?.message || 'Failed to delete course',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
 
-    const deleteLectureBtnHandler = (courseId, lectureId) => {
-        console.log(courseId);
-        console.log(lectureId);
-    }
+    const deleteLectureBtnHandler = async (courseId, lectureId) => {
+        try {
+            const response = await courseService.deleteLecture(courseId, lectureId);
+            if (response.success) {
+                toast({
+                    title: 'Success',
+                    description: 'Lecture deleted successfully',
+                    status: 'success',
+                    duration: 3000,
+                    isClosable: true,
+                });
+                // Refresh courses list
+                const coursesResponse = await courseService.getAllCourses();
+                if (coursesResponse.success) {
+                    setCourses(coursesResponse.courses);
+                }
+            }
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: error.response?.data?.message || 'Failed to delete lecture',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
 
-    const addLectureHandler = (e, courseId, title, description, video) => {
+    const addLectureHandler = async (e, courseId, title, description, video) => {
         e.preventDefault();
-    }
+        try {
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('description', description);
+            formData.append('video', video);
+
+            const response = await courseService.addLectures(courseId, formData);
+            if (response.success) {
+                toast({
+                    title: 'Success',
+                    description: 'Lecture added successfully',
+                    status: 'success',
+                    duration: 3000,
+                    isClosable: true,
+                });
+                onClose();
+                // Refresh courses list
+                const coursesResponse = await courseService.getAllCourses();
+                if (coursesResponse.success) {
+                    setCourses(coursesResponse.courses);
+                }
+            }
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: error.response?.data?.message || 'Failed to add lecture',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
 
 
     return (
@@ -62,17 +156,24 @@ const AdminCourses = () => {
                             </Tr>
                         </Thead>
                         <Tbody>
-                            {
+                            {loading ? (
+                                <Tr>
+                                    <Td colSpan={8} textAlign="center">Loading...</Td>
+                                </Tr>
+                            ) : courses.length > 0 ? (
                                 courses.map((item) => (
-                                    <Row key={item._id} item={item} courseDetailHandler={courseDetailHandler} deleteLectureBtnHandler={deleteLectureBtnHandler} />
-                                )
-                                )
-                            }
+                                    <Row key={item._id} item={item} courseDetailHandler={courseDetailHandler} deleteHandler={deleteHandler} />
+                                ))
+                            ) : (
+                                <Tr>
+                                    <Td colSpan={8} textAlign="center">No courses found</Td>
+                                </Tr>
+                            )}
                         </Tbody>
                     </Table>
 
                 </TableContainer>
-                <CourseModal isOpen={isOpen} onClose={onClose} deleteHandler={deleteHandler} addLectureHandler={addLectureHandler} id={'ad2sadf'} courseTitle="React Course" />
+                <CourseModal isOpen={isOpen} onClose={onClose} deleteHandler={deleteHandler} addLectureHandler={addLectureHandler} id={selectedCourse?._id} courseTitle={selectedCourse?.title} />
             </Box>
 
             <Sidebar />
@@ -88,7 +189,7 @@ function Row({ item, courseDetailHandler, deleteHandler }) {
         <Tr>
             <Td>{item._id}</Td>
             <Td>
-                <Image src={item.poster.url} />
+                <Image src={item.poster?.url} boxSize="50px" objectFit="cover" />
             </Td>
             <Td>{item.title}</Td>
             <Td>{item.category}</Td>
@@ -98,7 +199,7 @@ function Row({ item, courseDetailHandler, deleteHandler }) {
 
             <Td isNumeric>
                 <HStack justifyContent={'flex-end'}>
-                    <Button onClick={() => courseDetailHandler(item._id)} variant={'outline'} color={'purple.500'}>View Lecture</Button>
+                    <Button onClick={() => courseDetailHandler(item)} variant={'outline'} color={'purple.500'}>View Lecture</Button>
                     <Button color={'purple.600'} onClick={() => deleteHandler(item._id)}>
                         <RiDeleteBin7Fill />
                     </Button>

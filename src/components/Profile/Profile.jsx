@@ -1,34 +1,104 @@
-import React, { useState } from 'react'
-import { Container, Heading, Stack, VStack, Avatar, HStack, Button, Text, Image, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Input, useDisclosure } from '@chakra-ui/react';
+import React, { useState, useEffect } from 'react'
+import { Container, Heading, Stack, VStack, Avatar, HStack, Button, Text, Image, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Input, useDisclosure, useToast } from '@chakra-ui/react';
 import { Link } from 'react-router-dom';
 import { RiDeleteBin7Fill } from 'react-icons/ri'
 import { fileUploadCss } from './../Auth/Register';
+import { authService } from '../../services/authService';
+import { useAuth } from '../../context/AuthContext';
 
 const Profile = () => {
-    const user = {
-        name: "Anurag",
-        email: "anuragg@gmail.com",
-        CreatedAt: String(new Date().toISOString()),
-        role: "user",
-        subscription: {
-            status: undefined
-        },
-        playlist: [{
-            course: "web development",
-            poster: 'https://images.unsplash.com/photo-1682686580036-b5e25932ce9a?q=80&w=1975&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-        }]
-    }
+    const [image, setImage] = useState('');
+    const [imagePrev, setImagePrev] = useState('');
+    const toast = useToast();
+    const { isOpen, onClose, onOpen } = useDisclosure();
+    const { user, loading, isAuthenticated, refreshUser } = useAuth();
 
-    const removeFromPlaylisthandler = id => {
-        console.log(id);
+    // Redirect to login if not authenticated
+    useEffect(() => {
+        if (!loading && !isAuthenticated) {
+            window.location.href = '/login';
+        }
+    }, [loading, isAuthenticated]);
+
+    const removeFromPlaylisthandler = async (courseId) => {
+        try {
+            const response = await authService.removeFromPlaylist(courseId);
+            if (response.success) {
+                toast({
+                    title: 'Success',
+                    description: 'Course removed from playlist',
+                    status: 'success',
+                    duration: 3000,
+                    isClosable: true,
+                });
+                // Refresh profile data
+                await refreshUser();
+            }
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: error.response?.data?.message || 'Failed to remove course',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        }
     };
 
-    const changeImgSubmitHandler = (e, image) => {
+    const changeImgSubmitHandler = async (e) => {
         e.preventDefault();
-        console.log(image);
+        if (!image) return;
+
+        try {
+            const formData = new FormData();
+            formData.append('avatar', image);
+
+            const response = await authService.updateProfilePicture(formData);
+            if (response.success) {
+                toast({
+                    title: 'Success',
+                    description: 'Profile picture updated successfully',
+                    status: 'success',
+                    duration: 3000,
+                    isClosable: true,
+                });
+                onClose();
+                // Refresh profile data
+                await refreshUser();
+            }
+        } catch (error) {
+            toast({
+                title: 'Error',
+                description: error.response?.data?.message || 'Failed to update profile picture',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
+
+    const changeImageHandler = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+
+        reader.onloadend = () => {
+            setImagePrev(reader.result);
+            setImage(file);
+        }
+    };
+
+    if (loading) {
+        return <Container minH={"95vh"} maxW={'container.lg'} py={8}>
+            <Heading children="Loading..." />
+        </Container>;
     }
 
-    const { isOpen, onClose, onOpen } = useDisclosure();
+    if (!user) {
+        return <Container minH={"95vh"} maxW={'container.lg'} py={8}>
+            <Heading children="User not found" />
+        </Container>;
+    }
 
     return (
         <Container minH={"95vh"} maxW={'container.lg'} py={8}>
@@ -42,10 +112,9 @@ const Profile = () => {
                 padding={'8'}
             >
                 <VStack>
-                    <Avatar boxSize={'48'} />
+                    <Avatar boxSize={'48'} src={user.avatar?.url} />
                     <Button colorScheme='yellow' variant={'ghost'} onClick={onOpen}>
                         Change Photo
-
                     </Button>
                 </VStack>
                 <VStack spacing={'4'} alignItems={['center', 'flex-start']}>
@@ -59,9 +128,9 @@ const Profile = () => {
                     </HStack>
                     <HStack>
                         <Text fontWeight={'bold'}> CreatedAt</Text>
-                        <Text> {user.CreatedAt.split('T')[0]}</Text>
+                        <Text> {user.createdAt?.split('T')[0]}</Text>
                     </HStack>
-                    {
+                    {/* {
                         user.role !== 'admin' &&
                         <HStack>
                             <Text children="Subscription" fontWeight={'bold'} />
@@ -79,7 +148,24 @@ const Profile = () => {
                                 )
                             }
                         </HStack>
-                    }
+                    } */}
+                    {user.role !== 'admin' && (
+                        <HStack>
+                            <Text children="Subscription" fontWeight={'bold'} />
+                            {user.subscription?.status === 'active' ? (
+                                <Button variant="unstyled">
+                                    Cancel Subscription
+                                </Button>
+                            ) : (
+                                <Link to="/subscribe">
+                                    <Button colorScheme="yellow">
+                                        Subscribe
+                                    </Button>
+                                </Link>
+                            )}
+                        </HStack>
+                    )}
+
                     <Stack
                         direction={['column', 'row']}
                         alignItems={'center'}
@@ -167,7 +253,7 @@ function ChangePhotoBox({ isOpen, onClose, changeImgSubmitHandler }) {
                 <ModalCloseButton />
                 <ModalBody>
                     <Container>
-                        <form onSubmit={(e) => changeImgSubmitHandler(e, image)}>
+                        <form onSubmit={changeImgSubmitHandler}>
                             <VStack spacing={8}>
                                 {
                                     imagePrev && <Avatar src={imagePrev} boxSize={'48'} />

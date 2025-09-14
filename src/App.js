@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import Home from './components/Home/Home';
 import Header from './assets/Layout/Header';
 import Course from './components/Courses/Course';
@@ -28,35 +29,37 @@ function App() {
     e.preventDefault();
   });
   return (
-    <Router>
-      <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/courses" element={<Course />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/course/:id" element={<CoursePage />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/changepassword" element={<ChangePassword />} />
-        <Route path="/updateprofile" element={<UpdateProfile />} />
-        <Route path="/request" element={<Request />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgetpassword" element={<ForgetPassword />} />
-        <Route path="/resetpassword/:token" element={<ResetPassword />} />
-        <Route path="/subscribe" element={<Subscribe />} />
-        <Route path="/paymentsuccess" element={<PaymentSuccess />} />
-        <Route path="/paymentfail" element={<PaymentFailed />} />
-        <Route path="*" element={<NotFound />} />
+    <AuthProvider>
+      <Router>
+        <Header />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/courses" element={<Course />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/course/:id" element={<CoursePage />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/changepassword" element={<ChangePassword />} />
+          <Route path="/updateprofile" element={<UpdateProfile />} />
+          <Route path="/request" element={<Request />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgetpassword" element={<ForgetPassword />} />
+          <Route path="/resetpassword/:token" element={<ResetPassword />} />
+          <Route path="/subscribe" element={<Subscribe />} />
+          <Route path="/paymentsuccess" element={<PaymentSuccess />} />
+          <Route path="/paymentfail" element={<PaymentFailed />} />
+          <Route path="*" element={<NotFound />} />
 
-        {/* Admin Routes */}
-        <Route path="/admin/dashboard" element={<Dashboard />} />
-        <Route path="/admin/createcourse" element={<CreateCourse />} />
-        <Route path="/admin/users" element={<Users />} />
-        <Route path="/admin/courses" element={<AdminCourses />} />
-      </Routes>
-      <Footer />
-    </Router>
+          {/* Admin Routes */}
+          <Route path="/admin/dashboard" element={<Dashboard />} />
+          <Route path="/admin/createcourse" element={<CreateCourse />} />
+          <Route path="/admin/users" element={<Users />} />
+          <Route path="/admin/courses" element={<AdminCourses />} />
+        </Routes>
+        <Footer />
+      </Router>
+    </AuthProvider>
   );
 }
 

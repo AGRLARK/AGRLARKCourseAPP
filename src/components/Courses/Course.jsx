@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
-import { Container, Heading, Input, HStack, Button, Text,Stack ,VStack,Image,Link} from '@chakra-ui/react'
+import React, { useState, useEffect } from 'react'
+import { Container, Heading, Input, HStack, Button, Text,Stack ,VStack,Image,Link, useToast} from '@chakra-ui/react'
+import { courseService } from '../../services/courseService';
+import { authService } from '../../services/authService';
 
 
 const Courses = ({views,title,imageSrc,id,addToPlaylistHandler,creator,description,lectureCount}) => (
@@ -29,15 +31,68 @@ const Courses = ({views,title,imageSrc,id,addToPlaylistHandler,creator,descripti
 const Course = () => {
   const [keyword, setKeyword] = useState("");
   const [category,setCategory] = useState('');
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const toast = useToast();
   
-  const addToPlaylistHandler = () => {
-    console.log("Added to Playlist");
-  }
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await courseService.getAllCourses();
+        if (response.success) {
+          setCourses(response.courses);
+        }
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to fetch courses',
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, [toast]);
+
+  const addToPlaylistHandler = async (courseId) => {
+    try {
+      const response = await authService.addToPlaylist(courseId);
+      if (response.success) {
+        toast({
+          title: 'Success',
+          description: 'Course added to playlist',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to add course to playlist',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
 
   const Categories = [
-    "Web Development", "Game Development", "APP Development", "Data Science", "Artificial Intelligense", "Data Science & Algorithms",
-    "Software Development"
-  ]
+    "Web Development", "Game Development", "APP Development", "Data Science", "Artificial Intelligence", "Data Science & Algorithms",
+    "Software Development", "Cloud Computing", "Cybersecurity", "Mobile Development", "Blockchain", "Programming", "Machine Learning", "Database", "Networking", "System Administration", "Design", "Digital Marketing"
+  ];
+
+  // Filter courses based on keyword and category
+  const filteredCourses = courses.filter(course => {
+    const matchesKeyword = course.title.toLowerCase().includes(keyword.toLowerCase()) ||
+                          course.description.toLowerCase().includes(keyword.toLowerCase());
+    const matchesCategory = !category || course.category === category;
+    return matchesKeyword && matchesCategory;
+  });
   return (
     <Container minH={"95vh"} maxW="container.lg" paddingY="8">
       <Heading children="All Courses" m={"8"}></Heading>
@@ -52,22 +107,33 @@ const Course = () => {
         ))} 
       </HStack>
 
-      <Stack direction={['column','row']}
-      flexWrap={'wrap'}
-      justifyContent={['flex-start','space-evenly']}
-      alignItems={['center','flex-start']}
-      >
-        <Courses
-        views={23}
-        title={'Sample'}
-        imageSrc={'https://images.unsplash.com/photo-1704918187702-cc31f0c19280?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'}
-        id={'Sample'}
-        addToPlaylistHandler={addToPlaylistHandler}
-        creator={"Anurag"}
-        description={'Sample'}
-        lectureCount={22}
-        />
-      </Stack>
+      {loading ? (
+        <Heading children="Loading..." />
+      ) : (
+        <Stack direction={['column','row']}
+        flexWrap={'wrap'}
+        justifyContent={['flex-start','space-evenly']}
+        alignItems={['center','flex-start']}
+        >
+          {filteredCourses.length > 0 ? (
+            filteredCourses.map((course) => (
+              <Courses
+                key={course._id}
+                views={course.views}
+                title={course.title}
+                imageSrc={course.poster?.url}
+                id={course._id}
+                addToPlaylistHandler={() => addToPlaylistHandler(course._id)}
+                creator={course.createdBy}
+                description={course.description}
+                lectureCount={course.numOfVideos}
+              />
+            ))
+          ) : (
+            <Heading children="No courses found" />
+          )}
+        </Stack>
+      )}
     </Container>
 
   )
